@@ -1,0 +1,31 @@
+set cut_paste_input [stack 0]
+version 17.1 v1
+push $cut_paste_input
+GeoRenderVariable {
+ prim_path /Render/Vars/alpha
+ setAuthorMode {dataType set_value}
+ dataType float
+ setAuthorMode {sourceName set_value}
+ sourceName alpha
+ name AlphaVar
+ label "coverage AOV"
+ xpos 0
+ ypos 0
+}
+GeoRender {
+ inputs 2
+ render_settings_legacy true
+ render_variables_table { {color 1 rgba} {depth 1 depth} {normal 1 {}} {primId 1 {}} {instanceId 1 {}} }
+ name InstanceRenderAOVs
+ label "pick InstanceRender in renderer"
+ xpos 0
+ ypos 100
+}
+StickyNote {
+ inputs 0
+ note_font_size 13
+ label "InstanceRender AOVs\n\nPipe your geometry into AlphaVar and a camera into\nthe GeoRender's second input, then set renderer to\nInstanceRender.\n\nGeoRender writes an AOV's components into an output\nplane's channels IN ORDER, so mapping the 4-channel\ncolour AOV onto \"rgba\" puts its RED into alpha.\nCoverage therefore comes from the delegate's own\none-component \"alpha\" AOV, and a hand-written table\nrow only binds a name Nuke already knows - which is\nwhy the AlphaVar node is here: a GeoRenderVariable\nwhose sourceName matches is what registers it.\n\ndepth.Z is the camera-space distance (Storm writes\nNDC depth there instead)."
+ name AOVNotes
+ xpos 220
+ ypos 0
+}

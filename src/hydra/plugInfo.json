@@ -1,0 +1,22 @@
+{
+    "Plugins": [
+        {
+            "Info": {
+                "Types": {
+                    "HdIrRendererPlugin": {
+                        "bases": [
+                            "HdRendererPlugin"
+                        ],
+                        "displayName": "InstanceRender",
+                        "priority": 10
+                    }
+                }
+            },
+            "LibraryPath": "../hdInstanceRender.dll",
+            "Name": "hdInstanceRender",
+            "ResourcePath": "resources",
+            "Root": "..",
+            "Type": "library"
+        }
+    ]
+}

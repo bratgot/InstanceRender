@@ -1,0 +1,23 @@
+build*/
+test/out*/
+third_party/*.lib
+third_party/*.def
+third_party/*.exp
+*.dll
+*.pdb
+*.exp
+*.ilk
+third_party/python311.lib
+__pycache__/
+
+# the test suite and its 2 GB of render output: developer scaffolding, not
+# something anyone installing the plugin needs
+test/
+
+# logs and editor leavings
+*.log
+*.autosave
+*~
+
+# working notes for whoever is at the keyboard, not for a clone
+CLAUDE.md
