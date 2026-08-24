@@ -5,7 +5,21 @@ against, and loaded by, software it does not contain and does not redistribute.
 This file records what it uses and under what terms, and - just as importantly -
 what this repository does **not** ship.
 
-## What this repository does NOT contain
+## Source repository and binary release ship different things
+
+This file covers two things, and the difference matters:
+
+* **This repository** vendors no third-party source or binary at all. Everything
+  below is supplied by your own installs at build time.
+* **The binary release zip** (`InstanceRender-<version>-Nuke...-win64.zip`) does
+  ship three runtime libraries, because a compiled plugin is no use without
+  them: **Embree** and **oneTBB** (both Apache-2.0, which permits
+  redistribution) and the **CUDA runtime** `cudart64_12.dll`, which NVIDIA lists
+  as a redistributable component of the CUDA Toolkit. Their licence texts travel
+  in that zip's `licenses/` folder. Nothing else third-party is in it - no Nuke,
+  no USD, no OptiX, no OpenVDB.
+
+### What this repository does NOT contain
 
 No third-party source or binary is vendored here. In particular:
 
@@ -17,7 +31,9 @@ No third-party source or binary is vendored here. In particular:
   and are gitignored. They are a Windows linking artefact - a table of symbol
   names - and are not redistributed.
 * **No Embree, TBB, CUDA, OptiX or USD binaries.** All are supplied by your own
-  installs.
+  installs when you build. (The binary release zip does carry Embree, oneTBB and
+  the CUDA runtime - see above. OptiX and USD are never shipped in either form:
+  OptiX is loaded from the NVIDIA driver, USD comes from your Nuke.)
 
 The only exception is `third_party/python311.def`, a plain-text list of the
 symbol names CPython exports, used to synthesise the import library above.

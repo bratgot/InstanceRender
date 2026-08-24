@@ -21,3 +21,6 @@ test/
 
 # working notes for whoever is at the keyboard, not for a clone
 CLAUDE.md
+
+# the release zip and its staging folder: build output, not source
+dist/
