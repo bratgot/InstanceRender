@@ -150,7 +150,10 @@ foreach ($f in @("README.md", "INSTALL.md", "COMPATIBILITY.md", "install.ps1", "
 }
 Copy-Item (Join-Path $root "LICENSE") $stage
 Copy-Item (Join-Path $root "THIRD_PARTY_NOTICES.md") $stage
-Set-Content (Join-Path $stage "VERSION.txt") "InstanceRender $Version`r`nbuilt $(Get-Date -Format 'yyyy-MM-dd')`r`nNuke $($Versions -join ', ') - Windows x64`r`n" -Encoding UTF8
+# WriteAllText, not Set-Content -Encoding UTF8: that writes a BOM on Windows
+# PowerShell and VERSION.txt then opens as "ï»¿CopyToPoints 1.0" in anything
+# that does not strip one.
+[System.IO.File]::WriteAllText((Join-Path $stage "VERSION.txt"), "InstanceRender $Version`r`nbuilt $(Get-Date -Format 'yyyy-MM-dd')`r`nNuke $($Versions -join ', ') - Windows x64`r`n", (New-Object System.Text.UTF8Encoding($false)))
 
 # ---- nothing that should not ship ------------------------------------------
 $bad = Get-ChildItem $stage -Recurse -File | Where-Object { $_.Name -like "*.pdb" -or $_.Name -like "*.ilk" -or $_.Name -like "*.exp" }
