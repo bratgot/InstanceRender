@@ -6,9 +6,8 @@ Windows x64. Nuke 14.1, 15.2, 16.0, 16.1, 17.0 or 17.1.
 
 Unpack the zip anywhere and double-click **`install.bat`**.
 
-It copies the plugin to `%USERPROFILE%\.nuke\InstanceRender`, puts the runtime
-libraries beside each build, and adds one line to `%USERPROFILE%\.nuke\init.py`
-so Nuke looks in that folder. Start Nuke; **InstanceRender** is on the **3D**
+It copies the plugin to `%USERPROFILE%\.nuke\InstanceRender` and adds one line
+to `%USERPROFILE%\.nuke\init.py` so Nuke looks in that folder. Start Nuke; **InstanceRender** is on the **3D**
 toolbar.
 
 ## From PowerShell, with options
@@ -20,10 +19,10 @@ toolbar.
 .\install.ps1 -Prefix D:\studio\nuke       # somewhere other than ~/.nuke
 ```
 
-**`-Versions` is worth using.** Each build needs its own copy of Embree and the
-CUDA runtime beside it - about 38 MB - because the plugin loads them from its
-own folder by absolute path. Installing all six costs ~230 MB; installing the
-one you actually run costs ~40 MB.
+**`-Versions`** only trims the install: the builds are about 2-3 MB each, and
+the ~38 MB of runtime libraries (Embree, oneTBB, CUDA) sit once in
+`InstanceRender
+untime\`, shared by all of them.
 
 **`-Prefix`** installs somewhere else, for a shared or per-project location. That
 folder must be on Nuke's plugin path: either set `NUKE_PATH` to it, or add
@@ -33,21 +32,20 @@ the prefix itself is on the path.
 
 ## Installing by hand
 
-If you would rather not run a script:
+If you would rather not run a script (**`QUICK_INSTALL.md`** is the same thing
+written out step by step, for artists):
 
-1. Copy the `InstanceRender` folder from this zip into `%USERPROFILE%\.nuke\`.
-2. Copy the three DLLs from `runtime\` into **each** `nuke<version>` folder you
-   want to use - and also into `nuke17.0\hydra\` and `nuke17.1\hydra\` if you
-   want the Hydra delegate. This step is not optional: the plugin loads them
-   from its own directory and will not find them anywhere else.
-3. Add this to `%USERPROFILE%\.nuke\init.py` (create it if it is not there):
+1. Copy the `InstanceRender` folder from this zip into `%USERPROFILE%\.nuke\`,
+   whole and as it is. Its `init.py` loads the libraries in `runtime\` before
+   the plugin, so nothing needs copying beside the builds.
+2. Add this to `%USERPROFILE%\.nuke\init.py` (create it if it is not there):
 
    ```python
    import nuke
    nuke.pluginAddPath('./InstanceRender')
    ```
 
-4. Optionally copy `ToolSets\InstanceRender` into `%USERPROFILE%\.nuke\ToolSets\`.
+3. Optionally copy `ToolSets\InstanceRender` into `%USERPROFILE%\.nuke\ToolSets\`.
 
 ## Uninstalling
 
@@ -76,8 +74,9 @@ somewhere else entirely.
 **"The specified module could not be found" / "the specified procedure could not
 be found"**
 Almost always the runtime DLLs: `embree4.dll`, `tbb12.dll` and `cudart64_12.dll`
-must be **in the same folder as `InstanceRender.dll`**. Re-run `install.ps1`,
-which does that for you.
+must be in `InstanceRender\runtime\` (or beside `InstanceRender.dll`). The
+plugin folder's `init.py` prints `InstanceRender: ... is missing` when one is not
+there. Copy the folder again whole, or re-run `install.ps1`.
 
 **The renderer does not appear in the Viewer's renderer menu (Nuke 17)**
 That is the Hydra delegate, and Nuke builds its renderer list once while it

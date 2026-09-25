@@ -24,9 +24,41 @@ def _versions():
 # Exact match only.  An older build in a newer Nuke does not merely misbehave -
 # it fails to load with "the specified procedure could not be found", so saying
 # which build is missing is far more use than quietly feeding it the wrong one.
+def _preload_runtime(build):
+    # The plugin loads Embree, oneTBB and the CUDA runtime from its own folder
+    # by absolute path.  A release keeps ONE copy of them in runtime\ instead
+    # (six copies would add ~190 MB), so load them from there first: once a
+    # DLL is in the process, Windows resolves the plugin's imports of it by
+    # name, and the plugin's own side-by-side LoadLibrary simply finds nothing
+    # and is harmless.  Copies beside the build (a developer install) win.
+    # tbb12 FIRST, because embree4 imports it - and not at all where Nuke 17
+    # already has its own oneTBB loaded.
+    if os.name != "nt":
+        return
+    rt = os.path.join(_here, "runtime")
+    if not os.path.isdir(rt):
+        return
+    import ctypes
+    k32 = ctypes.WinDLL("kernel32", use_last_error=True)
+    k32.GetModuleHandleW.restype = ctypes.c_void_p
+    k32.GetModuleHandleW.argtypes = [ctypes.c_wchar_p]
+    for dll in ("tbb12.dll", "embree4.dll", "cudart64_12.dll"):
+        if os.path.isfile(os.path.join(build, dll)) or k32.GetModuleHandleW(dll):
+            continue
+        path = os.path.join(rt, dll)
+        if not os.path.isfile(path):
+            nuke.tprint("InstanceRender: %s is missing from %s - the plugin will not load" % (dll, rt))
+            continue
+        try:
+            ctypes.WinDLL(path)
+        except OSError as e:
+            nuke.tprint("InstanceRender: could not load %s (%s)" % (path, e))
+
+
 _exact = [n for v, n in _versions() if v == _want]
 if _exact:
     _build = os.path.join(_here, _exact[0])
+    _preload_runtime(_build)
     nuke.pluginAddPath(_build)
     # Icons live in one folder rather than a copy per version, and Nuke resolves
     # a menu icon="Foo.png" against the plugin path - so the folder has to be on

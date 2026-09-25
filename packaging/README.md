@@ -19,10 +19,13 @@ Double-click **`install.bat`**, or from PowerShell:
 
 ```powershell
 .\install.ps1                 # every Nuke version in this zip
-.\install.ps1 -Versions 17.1  # just the one you use (saves ~38 MB each)
+.\install.ps1 -Versions 17.1  # just the one you use
 ```
 
 Then start Nuke. **InstanceRender** appears on the **3D** toolbar.
+
+Would rather copy the files yourself? **`QUICK_INSTALL.md`** walks through it
+step by step: copy one folder into `.nuke`, then paste two lines into `init.py`.
 
 `INSTALL.md` covers custom locations, studio installs, uninstalling and what to
 do when the node does not appear.
@@ -50,7 +53,7 @@ matrix and explains what the error looks like when it happens.
 | | |
 |---|---|
 | `InstanceRender/` | the plugin: one folder per Nuke version, plus icons and the scripts that load it |
-| `runtime/` | Embree 4.3.3, oneTBB 2021.11, CUDA runtime 12.6 - copied beside each build at install time |
+| `InstanceRender/runtime/` | Embree 4.3.3, oneTBB 2021.11, CUDA runtime 12.6 - shared by every build, loaded by `InstanceRender/init.py` |
 | `ToolSets/` | an AOV recipe, which appears under **ToolSets > InstanceRender** |
 | `licenses/` | the licence texts for the three libraries above |
 | `INSTALL.md` | installing, uninstalling, and what to do when it does not appear |
@@ -87,7 +90,7 @@ InstanceRender is **MIT** - see `LICENSE`. Use it commercially, modify it, ship
 it inside a pipeline; keep the copyright notice.
 
 It is a plugin: it does not contain Nuke and gives you no rights to it. The
-three libraries in `runtime/` keep their own licences (Apache-2.0 for Embree and
+three libraries in `InstanceRender/runtime/` keep their own licences (Apache-2.0 for Embree and
 oneTBB, the NVIDIA CUDA EULA for the CUDA runtime) - texts in `licenses/`, and
 `THIRD_PARTY_NOTICES.md` says what is used and why.
 

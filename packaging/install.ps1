@@ -3,15 +3,12 @@
   Install InstanceRender into a Nuke plugin folder (~/.nuke by default).
 
 .DESCRIPTION
-  Copies the plugin folder, then copies the shared runtime (Embree, oneTBB, the
-  CUDA runtime) in beside EACH build. The zip carries one copy of those three to
-  stay small; they have to end up next to every InstanceRender.dll because the
-  plugin loads them from its own directory by absolute path - it cannot find
-  them anywhere else, and Embree in particular must be loaded after the oneTBB
-  that ships here rather than the older TBB inside Nuke 14 to 16.
+  Copies the plugin folder (only the builds asked for), including its shared
+  runtime\ folder (Embree, oneTBB, the CUDA runtime), which the plugin folder's
+  init.py loads before the plugin itself. Then it adds one idempotent line to
+  <prefix>\init.py so Nuke looks in the folder at all.
 
-  Finally it adds one idempotent line to <prefix>\init.py so Nuke looks in the
-  folder at all.
+  This is exactly the by-hand install in QUICK_INSTALL.md, done for you.
 
 .EXAMPLE
   .\install.ps1
@@ -19,8 +16,7 @@
 
 .EXAMPLE
   .\install.ps1 -Versions 17.1
-  Installs only the Nuke 17.1 build. Each build carries its own copy of the
-  runtime, so installing only what you use saves about 38 MB per version.
+  Installs only the Nuke 17.1 build.
 
 .EXAMPLE
   .\install.ps1 -Prefix D:\studio\nuke_plugins
@@ -33,7 +29,7 @@ param(
 $ErrorActionPreference = "Stop"
 $here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $src  = Join-Path $here "InstanceRender"
-$rt   = Join-Path $here "runtime"
+$rt   = Join-Path $src "runtime"
 
 if (-not (Test-Path $src)) { throw "InstanceRender folder not found next to this script - unpack the whole zip, not just install.ps1" }
 
@@ -65,21 +61,26 @@ if (Test-Path $icons) {
     Copy-Item (Join-Path $icons "*") (Join-Path $dest "icons") -Force
 }
 
-# ---- each build, plus the runtime beside it --------------------------------
+# ---- the shared runtime, loaded by init.py before the plugin ---------------
 $runtime = @(Get-ChildItem $rt -Filter *.dll -ErrorAction SilentlyContinue)
-if (-not $runtime) { throw "runtime folder is empty or missing - the plugin will not load without it" }
+if (-not $runtime) { throw "InstanceRender\runtime is empty or missing - the plugin will not load without it" }
+New-Item -ItemType Directory -Force (Join-Path $dest "runtime") | Out-Null
+foreach ($d in $runtime) { Copy-Item $d.FullName (Join-Path $dest "runtime") -Force }
+
+# ---- each build ------------------------------------------------------------
 
 foreach ($v in $sel) {
     $vd = Join-Path $dest $v
     New-Item -ItemType Directory -Force $vd | Out-Null
     Copy-Item (Join-Path $src "$v\*") $vd -Recurse -Force
-    foreach ($d in $runtime) { Copy-Item $d.FullName $vd -Force }
-    # The Hydra delegate is loaded by USD's plugin registry, not by Nuke, and it
-    # resolves its own dependencies from ITS folder - so the runtime goes there
-    # a second time. plugInfo.json points one level up at hydra\, which is why
-    # the .dll sits there and not inside hdInstanceRender\.
+    # Copies of the runtime left beside a build by an older installer would
+    # shadow runtime\ (init.py prefers them) and go stale on an upgrade.
+    foreach ($d in $runtime) {
+        foreach ($old in @((Join-Path $vd $d.Name), (Join-Path $vd "hydra\$($d.Name)"))) {
+            if (Test-Path $old) { Remove-Item $old -Force }
+        }
+    }
     $hy = Join-Path $vd "hydra"
-    if (Test-Path $hy) { foreach ($d in $runtime) { Copy-Item $d.FullName $hy -Force } }
     $mb = [math]::Round((Get-ChildItem $vd -Recurse -File | Measure-Object Length -Sum).Sum / 1MB, 1)
     Write-Host ("  {0,-10} {1} MB{2}" -f $v, $mb, $(if (Test-Path $hy) { "  (+ Hydra delegate)" } else { "" }))
 }

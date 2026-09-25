@@ -8,10 +8,11 @@
   packaging\.
 
   The runtime libraries (Embree, oneTBB, the CUDA runtime) are staged ONCE, in
-  runtime\, rather than copied into all six build folders - they are identical
-  across builds and one of them is 36 MB, so six copies would quadruple the
-  download for nothing. install.ps1 copies them beside each build it installs,
-  which is where the plugin looks for them.
+  InstanceRender\runtime\, rather than copied into all six build folders - they
+  are identical across builds and one of them is 36 MB, so six copies would
+  quadruple the download for nothing. The plugin folder's init.py loads them
+  from there before the plugin loads, so the InstanceRender folder works as it
+  is: copy it into .nuke, add the pluginAddPath line, done.
 
   .pdb files are deliberately NOT packaged. They travel with a developer
   install, are worth more than the DLL to anyone reverse engineering it, and
@@ -117,7 +118,8 @@ if (Test-Path $tsSrc) {
 }
 
 # ---- the shared runtime, staged once ---------------------------------------
-$rt = Join-Path $stage "runtime"
+# Inside the plugin folder, so copying that one folder is a complete install.
+$rt = Join-Path $plug "runtime"
 New-Item -ItemType Directory -Force $rt | Out-Null
 $firstRel = Join-Path $root "build$($Versions[0])\Release"
 foreach ($dll in @("embree4.dll", "tbb12.dll", "cudart64_12.dll")) {
@@ -145,7 +147,7 @@ if (Test-Path $tbbLic) { Copy-Item $tbbLic (Join-Path $lic "oneTBB-third-party-p
 Copy-Item (Need $cudaLic "CUDA EULA.txt (pass -CudaRoot)") (Join-Path $lic "NVIDIA-CUDA-EULA.txt")
 
 # ---- the documentation and the installer -----------------------------------
-foreach ($f in @("README.md", "INSTALL.md", "COMPATIBILITY.md", "install.ps1", "install.bat", "uninstall.ps1")) {
+foreach ($f in @("README.md", "QUICK_INSTALL.md", "INSTALL.md", "COMPATIBILITY.md", "install.ps1", "install.bat", "uninstall.ps1")) {
     Copy-Item (Need (Join-Path $root "packaging\$f") "packaging\$f") $stage
 }
 Copy-Item (Join-Path $root "LICENSE") $stage
