@@ -20,13 +20,13 @@
 
 .EXAMPLE
   .\build.ps1 -All -Install     # build everything first
-  .\package.ps1                 # -> dist\InstanceRender-0.20.0-Nuke14.1-17.1-win64.zip
+  .\package.ps1                 # -> dist\InstanceRender-0.20.1-Nuke14.1-17.1-win64.zip
 
 .EXAMPLE
   .\package.ps1 -Version 0.21.0 -Versions 17.0,17.1
 #>
 param(
-    [string]$Version  = "0.20.0",
+    [string]$Version  = "0.20.1",
     [string[]]$Versions = @("14.1", "15.2", "16.0", "16.1", "17.0", "17.1"),
     [string]$EmbreeRoot = "",
     [string]$CudaRoot   = ""
